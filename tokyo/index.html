@@ -2059,7 +2059,8 @@ const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE
 // ── お知らせ：DB → 表示 ──
 async function loadAnnouncements() {
   if (!sb) return;
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const { data, error } = await sb
     .from('announcements')
     .select('id, title, body, start_date, end_date, status')
@@ -2271,7 +2272,9 @@ function filterRosai(status, btn) {
 // ── Smooth scroll ──
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
-    const target = document.querySelector(a.getAttribute('href'));
+    const href = a.getAttribute('href');
+    if (!href || href === '#') return;
+    const target = document.querySelector(href);
     if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   });
 });
