@@ -787,7 +787,7 @@ footer {
   <div class="wrap">
     <p class="section__eyebrow reveal">News</p>
     <h2 class="section__title reveal">新着情報</h2>
-    <div class="news-list reveal">
+    <div class="news-list reveal" id="news-list-public">
       <a class="news-item" href="#">
         <span class="news-item-date">2025/12/18</span>
         <span class="news-item-tag"><span class="tag tag--blue">再生医療</span></span>
@@ -1750,18 +1750,18 @@ footer {
             </div>
           </div>
           <div class="form-submit-area">
-            <button class="btn btn--primary" onclick="alert('投稿しました！')">公開する</button>
-            <button class="btn btn--outline">下書き保存</button>
-            <span style="font-size:12px;color:var(--text-muted)">公開予約日時を設定することもできます</span>
+            <button class="btn btn--primary" id="btn-post-news" onclick="postAnnouncement()">公開する</button>
+            <button class="btn btn--outline" onclick="draftAnnouncement()">下書き保存</button>
+            <span id="news-post-msg" style="font-size:13px;color:var(--secondary);display:none;font-weight:700">✓ 保存しました</span>
+            <span id="news-post-err" style="font-size:13px;color:var(--accent);display:none"></span>
           </div>
         </div>
         <p style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:12px">最近のお知らせ</p>
         <div style="overflow-x:auto">
           <table class="data-table">
             <thead><tr><th>タイトル</th><th>掲載期間</th><th>状態</th><th></th></tr></thead>
-            <tbody>
-              <tr><td>2025年度 新人研修のご案内</td><td>2025/12/01 〜</td><td><span class="status-badge status-done">公開中</span></td><td><button class="action-btn">編集</button></td></tr>
-              <tr><td>年末年始のリハビリ休診について</td><td>2025/12/20 〜 2026/1/3</td><td><span class="status-badge status-new">公開予約</span></td><td><button class="action-btn">編集</button></td></tr>
+            <tbody id="admin-news-tbody">
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px">読み込み中…</td></tr>
             </tbody>
           </table>
         </div>
@@ -2049,7 +2049,139 @@ footer {
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script>
+// ── Supabase 初期化 ──
+const SUPABASE_URL = 'https://nrwqhtmpivknonsnmbq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_rPa5WCM7Pd_5qwO4ZMYBDw_3bRFPf4H';
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+// ── お知らせ：DB → 表示 ──
+async function loadAnnouncements() {
+  if (!sb) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await sb
+    .from('announcements')
+    .select('id, title, body, start_date, end_date, status')
+    .eq('status', 'published')
+    .lte('start_date', today)
+    .order('start_date', { ascending: false })
+    .limit(10);
+
+  if (error) { console.error('loadAnnouncements:', error); return; }
+
+  // 管理画面テーブルも更新（全件: draft含む）
+  loadAdminNewsTable();
+
+  if (!data || data.length === 0) return;
+
+  // 公開サイト: news-list-public を上書き
+  const list = document.getElementById('news-list-public');
+  if (list) {
+    const html = data.map(r => {
+      const d = r.start_date.replace(/-/g, '/');
+      return `<div class="news-item">
+        <span class="news-item-date">${d}</span>
+        <span class="news-item-tag"><span class="tag">お知らせ</span></span>
+        <span class="news-item-title">${escHtml(r.title)}</span>
+      </div>`;
+    }).join('');
+    list.innerHTML = html;
+  }
+}
+
+async function loadAdminNewsTable() {
+  if (!sb) return;
+  const tbody = document.getElementById('admin-news-tbody');
+  if (!tbody) return;
+  const { data, error } = await sb
+    .from('announcements')
+    .select('id, title, start_date, end_date, status')
+    .order('start_date', { ascending: false });
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--accent);padding:12px">読み込みエラー: ${escHtml(error.message)}</td></tr>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px">まだ投稿がありません</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(r => {
+    const start = r.start_date ? r.start_date.replace(/-/g, '/') : '—';
+    const end = r.end_date ? r.end_date.replace(/-/g, '/') : '無期限';
+    const badge = r.status === 'published'
+      ? '<span class="status-badge status-done">公開中</span>'
+      : '<span class="status-badge status-new">下書き</span>';
+    return `<tr>
+      <td>${escHtml(r.title)}</td>
+      <td>${start} 〜 ${end}</td>
+      <td>${badge}</td>
+      <td><button class="action-btn" onclick="deleteAnnouncement('${r.id}')">削除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── お知らせ投稿 ──
+async function postAnnouncement(status = 'published') {
+  if (!sb) { alert('DB未接続です'); return; }
+  const title = document.getElementById('n-title').value.trim();
+  const body  = document.getElementById('n-body').value.trim();
+  const start = document.getElementById('n-start').value;
+  const end   = document.getElementById('n-end').value || null;
+  const msg   = document.getElementById('news-post-msg');
+  const errEl = document.getElementById('news-post-err');
+  const btn   = document.getElementById('btn-post-news');
+
+  if (!title || !body || !start) {
+    errEl.textContent = '⚠ タイトル・本文・掲載開始日は必須です';
+    errEl.style.display = 'inline';
+    msg.style.display = 'none';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '保存中…';
+  errEl.style.display = 'none';
+
+  const { error } = await sb.from('announcements').insert({
+    title, body, start_date: start, end_date: end, status
+  });
+
+  btn.disabled = false;
+  btn.textContent = '公開する';
+
+  if (error) {
+    errEl.textContent = '⚠ エラー: ' + error.message;
+    errEl.style.display = 'inline';
+  } else {
+    msg.style.display = 'inline';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    // フォームリセット
+    ['n-title','n-body','n-start','n-end'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    loadAnnouncements();
+  }
+}
+
+function draftAnnouncement() { postAnnouncement('draft'); }
+
+async function deleteAnnouncement(id) {
+  if (!sb) return;
+  if (!confirm('この投稿を削除しますか？')) return;
+  const { error } = await sb.from('announcements').delete().eq('id', id);
+  if (error) alert('削除エラー: ' + error.message);
+  else loadAnnouncements();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ページ読み込み時にお知らせを取得
+window.addEventListener('DOMContentLoaded', () => { loadAnnouncements(); });
+
 // ── Admin panel ──
 function openAdmin() {
   const overlay = document.getElementById('admin-overlay');
