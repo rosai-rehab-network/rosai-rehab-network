@@ -1746,7 +1746,8 @@ footer {
             </div>
             <div class="form-group full">
               <label>添付画像（任意）</label>
-              <div class="img-upload-preview" onclick="alert('ファイル選択ダイアログが開きます')">📎 クリックして画像を選択</div>
+              <input type="file" id="n-image" accept="image/*" style="display:none" onchange="previewNewsImage(this)">
+              <div class="img-upload-preview" id="n-image-preview" onclick="document.getElementById('n-image').click()">📎 クリックして画像を選択</div>
             </div>
           </div>
           <div class="form-submit-area">
@@ -2122,6 +2123,18 @@ async function loadAdminNewsTable() {
   }).join('');
 }
 
+// ── 画像プレビュー ──
+function previewNewsImage(input) {
+  const preview = document.getElementById('n-image-preview');
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.innerHTML = `<img src="${e.target.result}" style="max-height:76px;max-width:100%;border-radius:4px;object-fit:contain">`;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
 // ── お知らせ投稿 ──
 async function postAnnouncement(status = 'published') {
   if (!sb) { alert('DB未接続です'); return; }
@@ -2132,6 +2145,7 @@ async function postAnnouncement(status = 'published') {
   const msg   = document.getElementById('news-post-msg');
   const errEl = document.getElementById('news-post-err');
   const btn   = document.getElementById('btn-post-news');
+  const imageFile = document.getElementById('n-image').files[0];
 
   if (!title || !body || !start) {
     errEl.textContent = '⚠ タイトル・本文・掲載開始日は必須です';
@@ -2144,8 +2158,24 @@ async function postAnnouncement(status = 'published') {
   btn.textContent = '保存中…';
   errEl.style.display = 'none';
 
+  let image_url = null;
+  if (imageFile) {
+    const ext = imageFile.name.split('.').pop();
+    const path = `news/${Date.now()}.${ext}`;
+    const { error: upErr } = await sb.storage.from('images').upload(path, imageFile);
+    if (upErr) {
+      errEl.textContent = '⚠ 画像アップロードエラー: ' + upErr.message;
+      errEl.style.display = 'inline';
+      btn.disabled = false;
+      btn.textContent = '公開する';
+      return;
+    }
+    const { data } = sb.storage.from('images').getPublicUrl(path);
+    image_url = data.publicUrl;
+  }
+
   const { error } = await sb.from('announcements').insert({
-    title, body, start_date: start, end_date: end, status
+    title, body, start_date: start, end_date: end, status, image_url
   });
 
   btn.disabled = false;
@@ -2157,11 +2187,12 @@ async function postAnnouncement(status = 'published') {
   } else {
     msg.style.display = 'inline';
     setTimeout(() => { msg.style.display = 'none'; }, 3000);
-    // フォームリセット
     ['n-title','n-body','n-start','n-end'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+    document.getElementById('n-image').value = '';
+    document.getElementById('n-image-preview').innerHTML = '📎 クリックして画像を選択';
     loadAnnouncements();
   }
 }
