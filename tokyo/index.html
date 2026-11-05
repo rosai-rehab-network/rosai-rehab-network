@@ -743,7 +743,7 @@ footer {
       <li><a href="#voices">先輩の声</a></li>
       <li><a href="#publications">学会発表</a></li>
       <li><a href="#rosai">全国労災</a></li>
-      <li><a href="https://claude.ai/artifact/EEBRV1TvxCek76PeMXLdAU" target="_blank" style="color:var(--accent)!important">🌐 全国ネットワーク</a></li>
+      <li><span style="color:var(--text-muted);cursor:default">🌐 全国ネットワーク <span style="font-size:10px;background:var(--text-muted);color:#fff;padding:1px 5px;border-radius:4px;vertical-align:middle">準備中</span></span></li>
       <li><a href="#media">ギャラリー</a></li>
       <li><a href="#visit">採用・見学</a></li>
     </ul>
@@ -1243,7 +1243,11 @@ footer {
       <button class="pub-filter-btn" data-filter="intl">英語論文</button>
     </div>
 
-    <div class="pub-list">
+    <div class="pub-list" id="pub-list-db">
+      <!-- DB data loads here; falls back to static below if DB empty -->
+    </div>
+
+    <div class="pub-list" id="pub-list-static">
 
       <div class="pub-item reveal" data-cat="sports">
         <span class="pub-cat pub-cat--sports">スポーツ</span>
@@ -1355,7 +1359,9 @@ footer {
 
     </div>
 
-    <p class="pub-total">2025年 合計 <strong>12件</strong>の発表・論文</p>
+    </div>
+
+    <p class="pub-total" id="pub-total-line">2025年 合計 <strong>12件</strong>の発表・論文</p>
   </div>
 </section>
 
@@ -1591,11 +1597,11 @@ footer {
     <h2 class="section__title reveal">全国労災病院 リハビリ採用情報</h2>
     <p class="section__lead reveal">全国の労災病院リハビリ部門の採用状況を集約しています。各病院のページでより詳細な情報をご確認ください。</p>
     <div class="reveal" style="margin-bottom:24px;">
-      <a href="https://claude.ai/artifact/EEBRV1TvxCek76PeMXLdAU" target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#0B2545,#1B3A6B);color:#fff;padding:14px 24px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 4px 16px rgba(11,37,69,.25);transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(0,0,0,.08);color:var(--text-muted);padding:14px 24px;border-radius:10px;font-weight:700;font-size:15px;border:2px dashed rgba(0,0,0,.15)">
         <span style="font-size:20px">🌐</span>
-        <span>全国労災病院リハビリテーションネットワークへ<br><small style="font-weight:400;opacity:.75">全国32病院の採用・活動情報を一覧で確認できます</small></span>
-        <span style="margin-left:8px;opacity:.7">→</span>
-      </a>
+        <span>全国労災病院リハビリテーションネットワーク<br><small style="font-weight:400">全国32病院の採用・活動情報を一覧で確認できます</small></span>
+        <span style="margin-left:8px;background:var(--secondary);color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;white-space:nowrap">準備中</span>
+      </div>
     </div>
 
     <div class="rosai-filter reveal" role="group" aria-label="絞り込み">
@@ -1606,7 +1612,7 @@ footer {
     </div>
 
     <div class="rosai-grid" id="rosai-grid">
-      <div class="rosai-card recruiting reveal reveal-delay-1" data-status="recruiting" onclick="alert('東京労災病院のページへ')">
+      <div class="rosai-card recruiting reveal reveal-delay-1" data-status="recruiting">
         <div class="rosai-region">関東 / 東京都大田区</div>
         <div class="rosai-name">東京労災病院</div>
         <span class="rosai-status recruiting">🟢 募集中</span>
@@ -1707,6 +1713,7 @@ footer {
         <div class="admin-nav-item" onclick="showPanel('staff')" id="nav-staff">👤 <span>スタッフ</span></div>
         <div class="admin-nav-item" onclick="showPanel('academic')" id="nav-academic">🎤 <span>学会発表</span></div>
         <div class="admin-nav-item" onclick="showPanel('paper')" id="nav-paper">📖 <span>論文管理</span></div>
+        <div class="admin-nav-item" onclick="showPanel('jobs')" id="nav-jobs">🏥 <span>募集状況</span></div>
       </div>
       <div class="admin-nav-group">
         <p class="admin-nav-label">メディア</p>
@@ -1857,38 +1864,43 @@ footer {
       <!-- 学会発表 -->
       <div class="admin-panel" id="panel-academic">
         <h2 class="admin-panel-title">🎤 学会発表管理</h2>
-        <p class="admin-panel-desc">学会発表の実績を登録します。年度別に自動で整理されます。</p>
+        <p class="admin-panel-desc">学会発表の実績を登録します。公開サイトの「学会発表・論文」欄に反映されます。</p>
         <div class="card" style="margin-bottom:24px">
+          <p style="font-weight:700;font-size:14px;margin:0 0 16px">新しい学会発表を登録</p>
           <div class="form-grid">
-            <div class="form-group">
-              <label for="a-year">発表年度 <span style="color:var(--accent)">*</span></label>
-              <select id="a-year">
-                <option>2025年度</option><option>2024年度</option><option>2023年度</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="a-speaker">発表者 <span style="color:var(--accent)">*</span></label>
-              <input id="a-speaker" type="text" placeholder="山田 太郎">
-            </div>
-            <div class="form-group full">
-              <label for="a-conf">学会名 <span style="color:var(--accent)">*</span></label>
-              <input id="a-conf" type="text" placeholder="例：第42回日本心臓リハビリテーション学会">
-            </div>
             <div class="form-group full">
               <label for="a-title">演題名 <span style="color:var(--accent)">*</span></label>
               <input id="a-title" type="text" placeholder="演題タイトルを入力">
             </div>
+            <div class="form-group full">
+              <label for="a-authors">発表者 <span style="color:var(--accent)">*</span></label>
+              <input id="a-authors" type="text" placeholder="山田 太郎、鈴木 花子">
+            </div>
+            <div class="form-group full">
+              <label for="a-venue">学会名 <span style="color:var(--accent)">*</span></label>
+              <input id="a-venue" type="text" placeholder="例：第42回日本心臓リハビリテーション学会">
+            </div>
+            <div class="form-group">
+              <label for="a-date">発表年月 <span style="color:var(--accent)">*</span></label>
+              <input id="a-date" type="month">
+            </div>
+            <div class="form-group">
+              <label for="a-url">URL（任意）</label>
+              <input id="a-url" type="url" placeholder="https://...">
+            </div>
           </div>
           <div class="form-submit-area">
-            <button class="btn btn--primary" onclick="alert('学会発表を登録しました')">登録する</button>
+            <button class="btn btn--primary" id="btn-post-academic" onclick="postPublication('学会発表')">登録する</button>
+            <span id="academic-post-msg" style="font-size:13px;color:var(--secondary);display:none;font-weight:700">✓ 登録しました</span>
+            <span id="academic-post-err" style="font-size:13px;color:var(--accent);display:none"></span>
           </div>
         </div>
+        <p style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:12px">登録済み学会発表</p>
         <div style="overflow-x:auto">
           <table class="data-table">
-            <thead><tr><th>年度</th><th>学会名</th><th>演題名</th><th>発表者</th><th></th></tr></thead>
-            <tbody>
-              <tr><td>2025</td><td>日本心臓リハ学会</td><td>心不全患者の運動耐容能改善について</td><td>山田 太郎</td><td><button class="action-btn">編集</button></td></tr>
-              <tr><td>2025</td><td>日本がんリハ研究会</td><td>術後肺がん患者の呼吸リハ成果</td><td>鈴木 花子</td><td><button class="action-btn">編集</button></td></tr>
+            <thead><tr><th>年月</th><th>学会名</th><th>演題名</th><th>発表者</th><th></th></tr></thead>
+            <tbody id="admin-academic-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">読み込み中…</td></tr>
             </tbody>
           </table>
         </div>
@@ -1897,31 +1909,45 @@ footer {
       <!-- 論文 -->
       <div class="admin-panel" id="panel-paper">
         <h2 class="admin-panel-title">📖 論文管理</h2>
-        <p class="admin-panel-desc">発表論文の情報を登録します。発行年度別に一覧表示されます。</p>
-        <div class="card">
+        <p class="admin-panel-desc">発表論文の情報を登録します。公開サイトの「学会発表・論文」欄に反映されます。</p>
+        <div class="card" style="margin-bottom:24px">
+          <p style="font-weight:700;font-size:14px;margin:0 0 16px">新しい論文を登録</p>
           <div class="form-grid">
             <div class="form-group full">
-              <label for="p-title">論文名 <span style="color:var(--accent)">*</span></label>
+              <label for="p-title">論文タイトル <span style="color:var(--accent)">*</span></label>
               <input id="p-title" type="text" placeholder="論文タイトルを入力">
-            </div>
-            <div class="form-group">
-              <label for="p-journal">雑誌名 <span style="color:var(--accent)">*</span></label>
-              <input id="p-journal" type="text" placeholder="例：理学療法学">
-            </div>
-            <div class="form-group">
-              <label for="p-year">発行年 <span style="color:var(--accent)">*</span></label>
-              <select id="p-year">
-                <option>2025年</option><option>2024年</option><option>2023年</option>
-              </select>
             </div>
             <div class="form-group full">
               <label for="p-authors">著者 <span style="color:var(--accent)">*</span></label>
               <input id="p-authors" type="text" placeholder="山田 太郎, 鈴木 花子 …">
             </div>
+            <div class="form-group full">
+              <label for="p-venue">雑誌名 <span style="color:var(--accent)">*</span></label>
+              <input id="p-venue" type="text" placeholder="例：理学療法学、Cureus">
+            </div>
+            <div class="form-group">
+              <label for="p-date">発行年月 <span style="color:var(--accent)">*</span></label>
+              <input id="p-date" type="month">
+            </div>
+            <div class="form-group">
+              <label for="p-url">DOI / URL（任意）</label>
+              <input id="p-url" type="url" placeholder="https://...">
+            </div>
           </div>
           <div class="form-submit-area">
-            <button class="btn btn--primary" onclick="alert('論文を登録しました')">登録する</button>
+            <button class="btn btn--primary" id="btn-post-paper" onclick="postPublication('論文')">登録する</button>
+            <span id="paper-post-msg" style="font-size:13px;color:var(--secondary);display:none;font-weight:700">✓ 登録しました</span>
+            <span id="paper-post-err" style="font-size:13px;color:var(--accent);display:none"></span>
           </div>
+        </div>
+        <p style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:12px">登録済み論文</p>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>年月</th><th>雑誌名</th><th>タイトル</th><th>著者</th><th></th></tr></thead>
+            <tbody id="admin-paper-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">読み込み中…</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -2014,6 +2040,47 @@ footer {
           </div>
         </div>
         <p style="font-size:12px;color:var(--text-muted);margin-top:16px">💡 ドラッグ＆ドロップで表示順を変更できます（実装予定）</p>
+      </div>
+
+      <!-- 募集状況管理 -->
+      <div class="admin-panel" id="panel-jobs">
+        <h2 class="admin-panel-title">🏥 募集状況管理</h2>
+        <p class="admin-panel-desc">各病院の採用募集状況を登録・更新します。公開サイトの採用情報欄に反映されます。</p>
+        <div class="card" style="margin-bottom:24px">
+          <p style="font-weight:700;font-size:14px;margin:0 0 16px">病院を追加 / 更新</p>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label for="j-role">病院名 <span style="color:var(--accent)">*</span></label>
+              <input id="j-role" type="text" placeholder="例：東京労災病院">
+            </div>
+            <div class="form-group">
+              <label for="j-status">募集状況 <span style="color:var(--accent)">*</span></label>
+              <select id="j-status">
+                <option value="recruiting">🟢 募集中</option>
+                <option value="soon">🟡 近日予定</option>
+                <option value="none">⚫ 現在なし</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="j-detail">詳細（職種・備考）</label>
+              <input id="j-detail" type="text" placeholder="例：PT・OT・ST　または　2026年4月予定">
+            </div>
+          </div>
+          <div class="form-submit-area">
+            <button class="btn btn--primary" id="btn-post-job" onclick="postJobOpening()">登録する</button>
+            <span id="job-post-msg" style="font-size:13px;color:var(--secondary);display:none;font-weight:700">✓ 登録しました</span>
+            <span id="job-post-err" style="font-size:13px;color:var(--accent);display:none"></span>
+          </div>
+        </div>
+        <p style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:12px">登録済み病院</p>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>病院名</th><th>状態</th><th>詳細</th><th></th></tr></thead>
+            <tbody id="admin-jobs-tbody">
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px">読み込み中…</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- 見学申込一覧 -->
@@ -2215,8 +2282,257 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── 学会発表・論文：DB → 表示 ──
+async function loadPublications() {
+  if (!sb) return;
+  const { data, error } = await sb
+    .from('publications')
+    .select('id, type, title, authors, venue, pub_date, url, status')
+    .eq('status', 'published')
+    .order('pub_date', { ascending: false });
+
+  if (error) { console.error('loadPublications:', error); return; }
+  if (!data || data.length === 0) return;
+
+  // 管理画面テーブル更新
+  loadAdminPublicationsTable();
+
+  // 公開サイト: pub-list-db に表示、static を非表示
+  const dbList = document.getElementById('pub-list-db');
+  const staticList = document.getElementById('pub-list-static');
+  if (!dbList) return;
+  staticList && (staticList.hidden = true);
+
+  const typeCatMap = { '学会発表': 'sports', '論文': 'intl' };
+  const typeLabel = { '学会発表': '学会発表', '論文': '論文' };
+  const typeCss = { '学会発表': 'pub-cat--sports', '論文': 'pub-cat--intl' };
+
+  dbList.innerHTML = data.map(r => {
+    const yr = r.pub_date ? r.pub_date.slice(0,7).replace('-','/') : '';
+    const link = r.url ? `<a href="${escHtml(r.url)}" target="_blank" style="font-size:12px;color:var(--secondary)">🔗 リンク</a>` : '';
+    const catCss = typeCss[r.type] || 'pub-cat--sports';
+    const catLabel = typeLabel[r.type] || r.type;
+    return `<div class="pub-item reveal" data-cat="${r.type === '論文' ? 'intl' : 'sports'}">
+      <span class="pub-cat ${catCss}">${escHtml(catLabel)}</span>
+      <div class="pub-content">
+        <p class="pub-title">${escHtml(r.title)}</p>
+        <p class="pub-authors">${escHtml(r.authors || '')}</p>
+        <p class="pub-venue">${escHtml(r.venue || '')} ${yr ? '(' + yr + ')' : ''} ${link}</p>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 件数表示更新
+  const totalEl = document.getElementById('pub-total-line');
+  if (totalEl) totalEl.innerHTML = `DB登録済み <strong>${data.length}件</strong>の発表・論文`;
+
+  // reveal 再適用
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  dbList.querySelectorAll('.reveal').forEach(el => io.observe(el));
+}
+
+async function loadAdminPublicationsTable() {
+  if (!sb) return;
+  const { data, error } = await sb
+    .from('publications')
+    .select('id, type, title, authors, venue, pub_date')
+    .order('pub_date', { ascending: false });
+  if (error) return;
+
+  const academicTbody = document.getElementById('admin-academic-tbody');
+  const paperTbody = document.getElementById('admin-paper-tbody');
+
+  const academic = (data || []).filter(r => r.type === '学会発表');
+  const papers   = (data || []).filter(r => r.type === '論文');
+
+  if (academicTbody) {
+    if (academic.length === 0) {
+      academicTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">まだ登録がありません</td></tr>';
+    } else {
+      academicTbody.innerHTML = academic.map(r => {
+        const ym = r.pub_date ? r.pub_date.slice(0,7).replace('-','/') : '—';
+        return `<tr>
+          <td>${ym}</td>
+          <td>${escHtml(r.venue || '')}</td>
+          <td>${escHtml(r.title)}</td>
+          <td>${escHtml(r.authors || '')}</td>
+          <td><button class="action-btn" onclick="deletePublication('${r.id}')">削除</button></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+  if (paperTbody) {
+    if (papers.length === 0) {
+      paperTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">まだ登録がありません</td></tr>';
+    } else {
+      paperTbody.innerHTML = papers.map(r => {
+        const ym = r.pub_date ? r.pub_date.slice(0,7).replace('-','/') : '—';
+        return `<tr>
+          <td>${ym}</td>
+          <td>${escHtml(r.venue || '')}</td>
+          <td>${escHtml(r.title)}</td>
+          <td>${escHtml(r.authors || '')}</td>
+          <td><button class="action-btn" onclick="deletePublication('${r.id}')">削除</button></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+}
+
+async function postPublication(type) {
+  if (!sb) { alert('DB未接続です'); return; }
+  const isAcademic = type === '学会発表';
+  const titleEl   = document.getElementById(isAcademic ? 'a-title' : 'p-title');
+  const authorsEl = document.getElementById(isAcademic ? 'a-authors' : 'p-authors');
+  const venueEl   = document.getElementById(isAcademic ? 'a-venue' : 'p-venue');
+  const dateEl    = document.getElementById(isAcademic ? 'a-date' : 'p-date');
+  const urlEl     = document.getElementById(isAcademic ? 'a-url' : 'p-url');
+  const msgEl     = document.getElementById(isAcademic ? 'academic-post-msg' : 'paper-post-msg');
+  const errEl     = document.getElementById(isAcademic ? 'academic-post-err' : 'paper-post-err');
+  const btnEl     = document.getElementById(isAcademic ? 'btn-post-academic' : 'btn-post-paper');
+
+  const title   = titleEl.value.trim();
+  const authors = authorsEl.value.trim();
+  const venue   = venueEl.value.trim();
+  const pubDate = dateEl.value ? dateEl.value + '-01' : null;
+  const url     = urlEl ? urlEl.value.trim() || null : null;
+
+  if (!title || !authors || !venue || !pubDate) {
+    errEl.textContent = '⚠ タイトル・著者・掲載先・年月は必須です';
+    errEl.style.display = 'inline'; msgEl.style.display = 'none'; return;
+  }
+  btnEl.disabled = true; btnEl.textContent = '保存中…'; errEl.style.display = 'none';
+
+  const { error } = await sb.from('publications').insert({ type, title, authors, venue, pub_date: pubDate, url, status: 'published' });
+  btnEl.disabled = false; btnEl.textContent = '登録する';
+  if (error) { errEl.textContent = '⚠ エラー: ' + error.message; errEl.style.display = 'inline'; }
+  else {
+    msgEl.style.display = 'inline';
+    setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+    [titleEl, authorsEl, venueEl, dateEl].forEach(el => { if (el) el.value = ''; });
+    if (urlEl) urlEl.value = '';
+    loadPublications();
+    loadAdminPublicationsTable();
+  }
+}
+
+async function deletePublication(id) {
+  if (!sb) return;
+  if (!confirm('この項目を削除しますか？')) return;
+  const { error } = await sb.from('publications').delete().eq('id', id);
+  if (error) alert('削除エラー: ' + error.message);
+  else { loadPublications(); loadAdminPublicationsTable(); }
+}
+
+// ── 募集状況：DB → 表示 ──
+async function loadJobOpenings() {
+  if (!sb) return;
+  const { data, error } = await sb
+    .from('job_openings')
+    .select('id, role, recruiting, detail, updated_at')
+    .order('updated_at', { ascending: false });
+
+  if (error) { console.error('loadJobOpenings:', error); return; }
+
+  loadAdminJobsTable(data || []);
+
+  // 公開サイト: rosai-grid をDB内容で更新（データあれば）
+  if (!data || data.length === 0) return;
+  const grid = document.getElementById('rosai-grid');
+  if (!grid) return;
+
+  grid.innerHTML = data.map((r, i) => {
+    let statusKey, statusHtml;
+    if (r.recruiting) {
+      statusKey = 'recruiting';
+      statusHtml = '<span class="rosai-status recruiting">🟢 募集中</span>';
+    } else if (r.detail && r.detail.includes('予定')) {
+      statusKey = 'soon';
+      statusHtml = `<span class="rosai-status soon">🟡 ${escHtml(r.detail)}</span>`;
+    } else {
+      statusKey = 'none';
+      statusHtml = '<span class="rosai-status none">⚫ 現在募集なし</span>';
+    }
+    const prof = (!r.recruiting && r.detail && r.detail.includes('予定')) ? '—' : escHtml(r.detail || '');
+    const delay = i % 3 === 0 ? '' : i % 3 === 1 ? ' reveal-delay-1' : ' reveal-delay-2';
+    return `<div class="rosai-card ${statusKey} reveal${delay}" data-status="${statusKey}">
+      <div class="rosai-name">${escHtml(r.role)}</div>
+      ${statusHtml}
+      <div class="rosai-prof">${prof}</div>
+    </div>`;
+  }).join('');
+
+  // reveal 再適用
+  const io2 = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io2.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  grid.querySelectorAll('.reveal').forEach(el => io2.observe(el));
+}
+
+function loadAdminJobsTable(data) {
+  const tbody = document.getElementById('admin-jobs-tbody');
+  if (!tbody) return;
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px">まだ登録がありません</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(r => {
+    const badge = r.recruiting
+      ? '<span class="status-badge" style="background:#e6f4ea;color:#1a7f37">🟢 募集中</span>'
+      : (r.detail && r.detail.includes('予定'))
+        ? '<span class="status-badge" style="background:#fff8e1;color:#a07000">🟡 近日予定</span>'
+        : '<span class="status-badge" style="background:#f5f5f5;color:#888">⚫ なし</span>';
+    return `<tr>
+      <td>${escHtml(r.role)}</td>
+      <td>${badge}</td>
+      <td>${escHtml(r.detail || '')}</td>
+      <td><button class="action-btn" onclick="deleteJobOpening('${r.id}')">削除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function postJobOpening() {
+  if (!sb) { alert('DB未接続です'); return; }
+  const role    = document.getElementById('j-role').value.trim();
+  const statusV = document.getElementById('j-status').value;
+  const detail  = document.getElementById('j-detail').value.trim();
+  const msgEl   = document.getElementById('job-post-msg');
+  const errEl   = document.getElementById('job-post-err');
+  const btnEl   = document.getElementById('btn-post-job');
+
+  if (!role) { errEl.textContent = '⚠ 病院名は必須です'; errEl.style.display = 'inline'; msgEl.style.display = 'none'; return; }
+  btnEl.disabled = true; btnEl.textContent = '保存中…'; errEl.style.display = 'none';
+
+  const recruiting = (statusV === 'recruiting');
+  const detailVal  = statusV === 'soon' ? (detail || '近日予定') : detail;
+
+  const now = new Date();
+  const updatedAt = now.toISOString();
+
+  const { error } = await sb.from('job_openings').insert({ role, recruiting, detail: detailVal, updated_at: updatedAt });
+  btnEl.disabled = false; btnEl.textContent = '登録する';
+  if (error) { errEl.textContent = '⚠ エラー: ' + error.message; errEl.style.display = 'inline'; }
+  else {
+    msgEl.style.display = 'inline';
+    setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+    document.getElementById('j-role').value = '';
+    document.getElementById('j-detail').value = '';
+    loadJobOpenings();
+  }
+}
+
+async function deleteJobOpening(id) {
+  if (!sb) return;
+  if (!confirm('この病院情報を削除しますか？')) return;
+  const { error } = await sb.from('job_openings').delete().eq('id', id);
+  if (error) alert('削除エラー: ' + error.message);
+  else loadJobOpenings();
+}
+
 // ページ読み込み時にお知らせを取得
-window.addEventListener('DOMContentLoaded', () => { loadAnnouncements(); });
+window.addEventListener('DOMContentLoaded', () => { loadAnnouncements(); loadPublications(); loadJobOpenings(); });
 
 // ── Admin panel ──
 function openAdmin() {
@@ -2235,6 +2551,9 @@ function showPanel(id) {
   document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'academic' || id === 'paper') loadAdminPublicationsTable();
+  if (id === 'jobs') loadJobOpenings();
+  if (id === 'news') loadAnnouncements();
 }
 
 // ── AI article generation (demo) ──
@@ -2281,7 +2600,7 @@ function handleVisitSubmit(e) {
       document.querySelectorAll('.pub-filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const f = btn.dataset.filter;
-      document.querySelectorAll('.pub-item').forEach(item => {
+      document.querySelectorAll('#pub-list-db .pub-item, #pub-list-static .pub-item').forEach(item => {
         item.hidden = !(f === 'all' || item.dataset.cat === f);
       });
     });
